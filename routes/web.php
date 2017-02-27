@@ -17,4 +17,7 @@ Route::get('/', function () {
 
 Route::get('/admin', 'AdminController@main');
 Route::get('/admin/stage', 'AdminController@stage');
+Route::get('/admin/monster', 'AdminController@monster');
+
 Route::post('/admin/add/stage', 'AdminController@addStage');
+Route::post('/admin/add/monster', 'AdminController@addMonster');
