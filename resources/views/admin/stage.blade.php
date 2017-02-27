@@ -51,16 +51,19 @@
     <script>
         $('#add').click(function () {
             var name = $('#name').val();
-            var _token = "{{ csrf_token() }}";
 
-            $.ajax ({
-                type: "POST",
-                url: "{{ action('AdminController@addStage') }}",
-                data: {'name': name, '_token': _token},
-                success: function(data) {
-                    window.location.reload();
-                }
-            });
+            if (name.length > 0) {
+                $.ajax({
+                    type: "POST",
+                    url: "{{ action('AdminController@addStage') }}",
+                    data: {'name': name},
+                    success: function (data) {
+                        window.location.reload();
+                    }
+                });
+            } else {
+                alert('請先輸入內容！');
+            }
         });
     </script>
 @endsection
