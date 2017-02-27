@@ -1,0 +1,66 @@
+@extends('admin.layouts.main')
+
+@section('style')
+    <style>
+        .content {
+            margin-top: 100px;
+        }
+
+        .stage-info {
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+@endsection
+
+@section('content')
+    <div class="container content">
+        <div class="row">
+            <div class="col-sm-8 col-sm-offset-2">
+                <input id="name" class="form-control col-sm-10">
+            </div>
+            <div class="col-sm-2">
+                <button id="add" class="btn btn-success">新增</button>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-8 col-sm-offset-2 stage-info">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th style="text-align: center" width="20%">編號</th>
+                            <th style="text-align: center" width="80%">關卡名稱</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach ($stages as $stage)
+                        <tr>
+                            <td>{{ $stage->id }}</td>
+                            <td>{{ $stage->name }}</td>
+                        </tr>
+                    @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+@endsection
+
+@section('script')
+    <script>
+        $('#add').click(function () {
+            var name = $('#name').val();
+            var _token = "{{ csrf_token() }}";
+
+            $.ajax ({
+                type: "POST",
+                url: "{{ action('AdminController@addStage') }}",
+                data: {'name': name, '_token': _token},
+                success: function(data) {
+                    window.location.reload();
+                }
+            });
+        });
+    </script>
+@endsection
