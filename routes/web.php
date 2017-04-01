@@ -20,11 +20,13 @@ Route::get('/admin/stage', 'AdminController@stage');
 Route::get('/admin/stage/detail', 'AdminController@stageDetail');
 Route::get('/admin/monster', 'AdminController@monster');
 Route::get('/admin/monster/detail', 'AdminController@monsterDetail');
+Route::get('/admin/monster/clue', 'AdminController@monsterClue');
 
 Route::post('/admin/add/stage', 'AdminController@addStage');
 Route::post('/admin/add/stage/detail', 'AdminController@addStageDetail');
 Route::post('/admin/add/monster', 'AdminController@addMonster');
 Route::post('/admin/add/monster/detail', 'AdminController@addMonsterDetail');
+Route::post('/admin/add/monster/clue', 'AdminController@addMonsterClue');
 
 Route::post('/user/login', 'UsersController@login');
 

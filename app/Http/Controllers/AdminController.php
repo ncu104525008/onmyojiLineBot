@@ -11,6 +11,7 @@ use App\Stage;
 use App\StageDetail;
 use App\Monster;
 use App\MonsterDetail;
+use App\MonsterClue;
 
 class AdminController extends Controller
 {
@@ -107,6 +108,31 @@ class AdminController extends Controller
         }
     }
 
+    public function monsterClue()
+    {
+        if (Session::has('id'))
+        {
+            $monster_list = Monster::all();
+            $monsters = array();
+            foreach ($monster_list as $item)
+            {
+                $monsters[$item->id] = $item->name;
+            }
+
+            $monster_clue_list = MonsterClue::all();
+            foreach ($monster_clue_list as $item)
+            {
+                $item->monsterName = $monsters[$item->monsterId];
+            }
+
+            return view('admin.monster_clue', compact('monsters', 'monster_clue_list'));
+        }
+        else
+        {
+            return view('admin.main');
+        }
+    }
+
     public function addStage()
     {
         if (Session::has('id'))
@@ -165,6 +191,23 @@ class AdminController extends Controller
                 $detail->monsterId = $monsterId;
                 $detail->number = $number;
                 $detail->save();
+            }
+        }
+    }
+
+    public function addMonsterClue()
+    {
+        if (Session::has('id'))
+        {
+            $monsterId = Input::get('monsterId');
+            $clue = Input::get('clue');
+
+            if (strlen($clue) > 0)
+            {
+                $item = new MonsterClue;
+                $item->monsterId = $monsterId;
+                $item->clue = $clue;
+                $item->save();
             }
         }
     }

@@ -38,6 +38,9 @@
                     <a href="/admin/monster">式神</a>
                 </li>
                 <li class="page-scroll">
+                    <a href="/admin/monster/clue">線索</a>
+                </li>
+                <li class="page-scroll">
                     <a href="/admin/monster/detail">式神細節</a>
                 </li>
             </ul>

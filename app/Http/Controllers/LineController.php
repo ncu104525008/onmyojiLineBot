@@ -8,6 +8,7 @@ use App\Stage;
 use App\StageDetail;
 use App\Monster;
 use App\MonsterDetail;
+use App\MonsterClue;
 
 class LineController extends Controller
 {
@@ -67,7 +68,7 @@ class LineController extends Controller
             $id = $this->getMonsterId($order[1]);
             if ($id == -1)
             {
-                return '查無名稱為'  . $order[1] . '的式神';
+                return '查無名稱或線索為'  . $order[1] . '的式神';
             }
             else
             {
@@ -92,6 +93,12 @@ class LineController extends Controller
         }
         else
         {
+            $count = MonsterClue::where('clue', '=', $name)->count();
+            if ($count == 1)
+            {
+                $id = MonsterClue::where('clue', '=', $name)->first()->monsterId;
+                return $id;
+            }
             return -1;
         }
     }
@@ -101,7 +108,9 @@ class LineController extends Controller
         $max_number = MonsterDetail::where('monsterId', '=', $monsterId)->orderBy('number', 'desc')->first()->number;
         $datas = MonsterDetail::where('monsterId', '=', $monsterId)->where('number', '=', $max_number)->get();
 
-        $str = '';
+        $monsterName = Monster::where('id', '=', $monsterId)->first()->name;
+
+        $str = '查詢  「' . $monsterName . '」 的結果為：';
         foreach ($datas as $data)
         {
             $id = $data->stageDetailId;
@@ -109,8 +118,6 @@ class LineController extends Controller
             $stageName = Stage::where('id', '=', $detail->stageId)->first()->name;
             if (strlen($str) > 0)
                 $str = $str . PHP_EOL . $stageName . ' ' . $detail->name . ' 數量 ' . $data->number;
-            else
-                $str = $stageName . ' ' . $detail->name . ' 數量 ' . $data->number;
         }
         return $str;
     }
