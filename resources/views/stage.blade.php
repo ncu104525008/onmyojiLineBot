@@ -18,10 +18,22 @@
     <body>
 	<div class="container">
 		<div class="row">
-			<div class="col-sm-8 col-sm-offset-2">
+			<div class="col-sm-7 col-sm-offset-2">
 				<input class="form-control">
+			</div>
+			<div class="col-sm-1">
+				<button id="query" class="btn btn-primary">查詢</button>
 			</div>
 		</div>
 	</div>
     </body>
+
+    {!! HTML::script("./js/bootstrap.min.js") !!}
+    {!! HTML::script("./js/jquery.js") !!}
+
+    <script>
+        $('#query').click(function () {
+            alert(1);
+        });
+    </script>
 </html>

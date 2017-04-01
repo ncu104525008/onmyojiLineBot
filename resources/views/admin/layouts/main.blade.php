@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     {!! Html::style('./css/bootstrap.min.css') !!}
+    {!! Html::style('./css/sweetalert.css') !!}
 
     @yield('style')
 
@@ -22,7 +23,7 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="#">陰陽師</a>
+            <a class="navbar-brand" href="/admin">陰陽師</a>
         </div>
 
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -31,7 +32,13 @@
                     <a href="/admin/stage">關卡</a>
                 </li>
                 <li class="page-scroll">
+                    <a href="/admin/stage/detail">關卡細節</a>
+                </li>
+                <li class="page-scroll">
                     <a href="/admin/monster">式神</a>
+                </li>
+                <li class="page-scroll">
+                    <a href="/admin/monster/detail">式神細節</a>
                 </li>
             </ul>
         </div>
@@ -42,6 +49,7 @@
 
 {!! HTML::script("./js/jquery.js") !!}
 {!! HTML::script("./js/bootstrap.min.js") !!}
+{!! HTML::script("./js/sweetalert.min.js") !!}
 @yield('script')
 
 </body>
