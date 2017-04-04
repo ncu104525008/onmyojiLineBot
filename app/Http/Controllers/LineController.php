@@ -113,6 +113,7 @@ class LineController extends Controller
         $monsterName = Monster::where('id', '=', $monsterId)->first()->name;
 
         $str = '查詢  「' . $monsterName . '」 的結果為：';
+        $arr = array();
         foreach ($datas as $data)
         {
             $id = $data->stageDetailId;
@@ -120,7 +121,52 @@ class LineController extends Controller
             $stageName = Stage::where('id', '=', $detail->stageId)->first()->name;
 
             if (strlen($str) > 0)
-                $str = $str . PHP_EOL . $stageName . ' ' . $detail->name . ' 數量 ' . $data->number;
+            {
+                array_push($arr, array('stageName' => $stageName, 'detailName' => $detail->name, 'number' => $data->number));
+//                $str = $str . PHP_EOL . $stageName . ' ' . $detail->name . ' 數量 ' . $data->number;
+            }
+        }
+
+        $arr2 = array();
+        $count_arr = array();
+        foreach ($arr as $data)
+        {
+            $stageName = explode('-', $data['stageName']);
+
+            if (strpos($data['stageName'], '-') > -1 && $stageName[1] == '困難')
+            {
+                $count = 0;
+                $flag = true;
+                foreach ($arr2 as $data2)
+                {
+                    if (strpos($data2['stageName'], $stageName[0]) > -1 && $data['detailName'] == $data2['detailName'])
+                    {
+                        $flag = false;
+                        array_push($count_arr, $count);
+                        break;
+                    }
+                    $count++;
+                }
+                if ($flag == true)
+                {
+                    array_push($arr2, array('stageName' => $data['stageName'], 'detailName' => $data['detailName'], 'number' => $data['number']));
+                }
+            }
+            else
+            {
+                array_push($arr2, array('stageName' => $data['stageName'], 'detailName' => $data['detailName'], 'number' => $data['number']));
+            }
+        }
+
+        foreach ($count_arr as $count)
+        {
+            $stageName = explode('-', $arr2[$count]['stageName']);
+            $arr2[$count]['stageName'] = $stageName[0] . '-(簡+困)';
+        }
+
+        foreach ($arr2 as $data)
+        {
+            $str = $str . PHP_EOL . $data['stageName'] . ' ' . $data['detailName'] . ' 數量' . $data['number'];
         }
         return $str;
     }
