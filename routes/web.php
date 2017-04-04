@@ -21,6 +21,7 @@ Route::get('/admin/stage/detail', 'AdminController@stageDetail');
 Route::get('/admin/monster', 'AdminController@monster');
 Route::get('/admin/monster/detail', 'AdminController@monsterDetail');
 Route::get('/admin/monster/clue', 'AdminController@monsterClue');
+Route::get('/admin/log', 'AdminController@log');
 
 Route::post('/admin/add/stage', 'AdminController@addStage');
 Route::post('/admin/add/stage/detail', 'AdminController@addStageDetail');

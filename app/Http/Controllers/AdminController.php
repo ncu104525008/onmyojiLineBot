@@ -6,12 +6,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Input;
 
 use Session;
+use DB;
 
 use App\Stage;
 use App\StageDetail;
 use App\Monster;
 use App\MonsterDetail;
 use App\MonsterClue;
+use App\Log;
 
 class AdminController extends Controller
 {
@@ -209,6 +211,21 @@ class AdminController extends Controller
                 $item->clue = $clue;
                 $item->save();
             }
+        }
+    }
+
+    public function log()
+    {
+        if (Session::has('id'))
+        {
+            $logs = DB::table('logs')->select(DB::raw('userId, count(`userId`) as count'))->groupBy('userId')->get();
+            $all_count = Log::all()->count();
+
+            return view('admin.log', compact('logs', 'all_count'));
+        }
+        else
+        {
+            return view('admin.main');
         }
     }
 }

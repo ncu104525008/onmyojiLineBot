@@ -9,6 +9,7 @@ use App\StageDetail;
 use App\Monster;
 use App\MonsterDetail;
 use App\MonsterClue;
+use App\Log;
 
 class LineController extends Controller
 {
@@ -43,6 +44,7 @@ class LineController extends Controller
             $from = $receive->events[0]->source->userId;
         }
 
+        $this->log($type, $from);
         $text = $this->getReturnMessage($text);
 
         if (strlen($text) > 0)
@@ -84,11 +86,11 @@ class LineController extends Controller
 
     public function getMonsterId($name)
     {
-        $count = Monster::where('name', '=', $name)->count();
+        $count = Monster::where('name', 'LIKE', '%' . $name . '%')->count();
 
         if ($count == 1)
         {
-            $id = Monster::where('name', '=', $name)->first()->id;
+            $id = Monster::where('name', 'LIKE', '%' . $name . '%')->first()->id;
             return $id;
         }
         else
@@ -116,6 +118,7 @@ class LineController extends Controller
             $id = $data->stageDetailId;
             $detail = StageDetail::where('id', '=', $id)->first();
             $stageName = Stage::where('id', '=', $detail->stageId)->first()->name;
+
             if (strlen($str) > 0)
                 $str = $str . PHP_EOL . $stageName . ' ' . $detail->name . ' 數量 ' . $data->number;
         }
@@ -138,5 +141,17 @@ class LineController extends Controller
                 $str = $stageName . ' ' . $detail->name . ' 數量 ' . $data->number;
         }
         return $str;
+    }
+
+    public function log($type, $userId)
+    {
+       // $count = Log::where('type', '=' , $type)->where('userId', '=', $userId)->count();
+       // if ($count == 0)
+       // {
+            $log = new Log;
+            $log->type = $type;
+            $log->userId = $userId;
+            $log->save();
+       // }
     }
 }
