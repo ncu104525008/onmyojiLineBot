@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Stage extends Model
 {
     protected $fillable = [
-        'name',
+        'name', 'grade'
     ];
 
     public $timestamps = false;
