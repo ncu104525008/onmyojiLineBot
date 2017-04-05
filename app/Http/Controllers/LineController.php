@@ -15,7 +15,7 @@ class LineController extends Controller
 {
     public function callback()
     {
-        $channel_access_token = "aDAamp2Wbzrxk9mCVDTwPETjHilixPqhrBSnrrcLM5gGCy0aG3PvR6OH5K6SkMMcwOEndSy9jnhUsRv8iY/grgm+ZbPCFFTb0epHt5zQam+hwssdzuO8RSH0/51ljjb68cGDrkilW+5aaV0rxrM+TQdB04t89/1O/w1cDnyilFU=";
+        $channel_access_token = env('LINE_TOKEN', '');
 
         // 將收到的資料整理至變數
         $receive = json_decode(file_get_contents("php://input"));
@@ -123,7 +123,6 @@ class LineController extends Controller
             if (strlen($str) > 0)
             {
                 array_push($arr, array('stageName' => $stageName, 'detailName' => $detail->name, 'number' => $data->number));
-//                $str = $str . PHP_EOL . $stageName . ' ' . $detail->name . ' 數量 ' . $data->number;
             }
         }
 
@@ -161,7 +160,7 @@ class LineController extends Controller
         foreach ($count_arr as $count)
         {
             $stageName = explode('-', $arr2[$count]['stageName']);
-            $arr2[$count]['stageName'] = $stageName[0] . '-(簡+困)';
+            $arr2[$count]['stageName'] = $stageName[0] . '-(普+困)';
         }
 
         foreach ($arr2 as $data)
@@ -175,7 +174,9 @@ class LineController extends Controller
     {
         $datas = MonsterDetail::where('monsterId', '=', $monsterId)->get();
 
-        $str = '';
+        $monsterName = Monster::where('id', '=', $monsterId)->first()->name;
+
+        $str = '查詢  「' . $monsterName . '」 的結果為：';
         foreach ($datas as $data)
         {
             $id = $data->stageDetailId;

@@ -16,6 +16,9 @@
 @section('content')
     <div class="container content">
         <div class="row">
+            <p class="col-sm-12">共 <?=$count ?> 使用者，總次數： {{ $all_count }}</p>
+        </div>
+        <div class="row">
             <div class="col-sm-8 col-sm-offset-2 stage-info">
                 <table class="table table-bordered">
                     <thead>
@@ -36,9 +39,6 @@
                     </tbody>
                 </table>
             </div>
-        </div>
-        <div class="row">
-            <p class="col-sm-12">共 <?=$count ?> 使用者，總次數： {{ $all_count }}</p>
         </div>
     </div>
 @endsection
