@@ -151,6 +151,7 @@ class LineController extends Controller
             ->where('monster_details.monsterId', '=', $monsterId)
             ->where('number', '=', $max_number)
             ->groupBy('stages.name', 'stage_details.name', 'monster_details.number')
+            ->orderBy('stages.id')
             ->get();
 
         $monsterName = Monster::where('id', '=', $monsterId)->first()->name;
@@ -186,6 +187,7 @@ class LineController extends Controller
             ->select(DB::raw('stages.`name` AS stageName'), DB::raw('stage_details.`name` AS stageDetailName'), DB::raw('MAX(stages.`grade`) AS maxGrade'), DB::raw('COUNT(stages.`grade`) AS countGrade'), DB::raw('monster_details.`number` AS number'))
             ->where('monster_details.monsterId', '=', $monsterId)
             ->groupBy('stages.name', 'stage_details.name', 'monster_details.number')
+            ->orderBy('stages.id')
             ->get();
 
         $monsterName = Monster::where('id', '=', $monsterId)->first()->name;
