@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 use App\Stage;
 use App\StageDetail;
@@ -86,119 +87,142 @@ class LineController extends Controller
 
     public function getMonsterId($name)
     {
-        $count = Monster::where('name', 'LIKE', '%' . $name . '%')->count();
-
-        if ($count == 1)
+        $count = Monster::where('name', '=', $name)->count();
+        switch ($count)
         {
-            $id = Monster::where('name', 'LIKE', '%' . $name . '%')->first()->id;
-            return $id;
-        }
-        else
-        {
-            $count = MonsterClue::where('clue', '=', $name)->count();
-            if ($count == 1)
-            {
-                $id = MonsterClue::where('clue', '=', $name)->first()->monsterId;
+            case 0:
+                // 在式神中，沒有完全符合條件的結果
+                // 判斷線索中是否有完全符合條件的結果
+                $count = MonsterClue::where('clue', '=', $name)->count();
+                switch ($count)
+                {
+                    case 0:
+                        // 判斷式神中，部分符合者
+                        $count = Monster::where('name', 'LIKE', '%' . $name . '%')->count();
+                        switch ($count)
+                        {
+                            case 0:
+                                // 判斷線索中，部分符合者
+                                $count = MonsterClue::where('clue', 'LIKE', '%' . $name . '%')->count();
+                                switch ($count)
+                                {
+                                    case 0:
+                                        return -1;
+                                        break;
+                                    case 1:
+                                        $id = MonsterClue::where('clue', 'LIKE', '%' . $name . '%')->first()->monsterId;
+                                        return $id;
+                                        break;
+                                    default :
+                                        return -1;
+                                        break;
+                                }
+                                break;
+                            case 1:
+                                $id = Monster::where('name', 'LIKE', '%' . $name . '%')->first()->id;
+                                return $id;
+                                break;
+                            default :
+                                return -1;
+                                break;
+                        }
+                        break;
+                    case 1:
+                        $id = MonsterClue::where('clue', '=', $name)->first()->monsterId;
+                        return $id;
+                        break;
+                }
+                break;
+            case 1:
+                // 完全符合條件的結果
+                $id = Monster::where('name', '=', $name)->first()->id;
                 return $id;
-            }
-            return -1;
+                break;
         }
     }
 
     public function getMonsterPlace($monsterId)
     {
         $max_number = MonsterDetail::where('monsterId', '=', $monsterId)->orderBy('number', 'desc')->first()->number;
-        $datas = MonsterDetail::where('monsterId', '=', $monsterId)->where('number', '=', $max_number)->get();
+        $datas = DB::table('monster_details')
+            ->join('stage_details', 'monster_details.stageDetailId', '=', 'stage_details.id')
+            ->join('stages', 'stage_details.stageId', '=', 'stages.id')
+            ->select(DB::raw('stages.`name` AS stageName'), DB::raw('stage_details.`name` AS stageDetailName'), DB::raw('MAX(stages.`grade`) AS maxGrade'), DB::raw('COUNT(stages.`grade`) AS countGrade'), DB::raw('monster_details.`number` AS number'))
+            ->where('monster_details.monsterId', '=', $monsterId)
+            ->where('number', '=', $max_number)
+            ->groupBy('stages.name', 'stage_details.name', 'monster_details.number')
+            ->get();
 
         $monsterName = Monster::where('id', '=', $monsterId)->first()->name;
-
         $str = '查詢  「' . $monsterName . '」 的結果為：';
-        $arr = array();
+
         foreach ($datas as $data)
         {
-            $id = $data->stageDetailId;
-            $detail = StageDetail::where('id', '=', $id)->first();
-            $stageName = Stage::where('id', '=', $detail->stageId)->first()->name;
-
-            if (strlen($str) > 0)
+            $str = $str . PHP_EOL . $data->stageName;
+            if ($data->countGrade == 2)
             {
-                array_push($arr, array('stageName' => $stageName, 'detailName' => $detail->name, 'number' => $data->number));
+                $str = $str . '（普+困）';
             }
-        }
-
-        $arr2 = array();
-        $count_arr = array();
-        foreach ($arr as $data)
-        {
-            $stageName = explode('-', $data['stageName']);
-
-            if (strpos($data['stageName'], '-') > -1 && $stageName[1] == '困難')
+            else if ($data->maxGrade == 0)
             {
-                $count = 0;
-                $flag = true;
-                foreach ($arr2 as $data2)
-                {
-                    if (strpos($data2['stageName'], $stageName[0]) > -1 && $data['detailName'] == $data2['detailName'])
-                    {
-                        $flag = false;
-                        array_push($count_arr, $count);
-                        break;
-                    }
-                    $count++;
-                }
-                if ($flag == true)
-                {
-                    array_push($arr2, array('stageName' => $data['stageName'], 'detailName' => $data['detailName'], 'number' => $data['number']));
-                }
+                $str = $str . '（普）';
             }
-            else
+            else if ($data->maxGrade == 1)
             {
-                array_push($arr2, array('stageName' => $data['stageName'], 'detailName' => $data['detailName'], 'number' => $data['number']));
+                $str = $str . '（困）';
             }
+
+            $str = $str . ' ' . $data->stageDetailName . ' 數量' . $data->number;
         }
 
-        foreach ($count_arr as $count)
-        {
-            $stageName = explode('-', $arr2[$count]['stageName']);
-            $arr2[$count]['stageName'] = $stageName[0] . '-(普+困)';
-        }
-
-        foreach ($arr2 as $data)
-        {
-            $str = $str . PHP_EOL . $data['stageName'] . ' ' . $data['detailName'] . ' 數量' . $data['number'];
-        }
         return $str;
     }
 
     public function getMonsterAllPlace($monsterId)
     {
-        $datas = MonsterDetail::where('monsterId', '=', $monsterId)->get();
+        $datas = DB::table('monster_details')
+            ->join('stage_details', 'monster_details.stageDetailId', '=', 'stage_details.id')
+            ->join('stages', 'stage_details.stageId', '=', 'stages.id')
+            ->select(DB::raw('stages.`name` AS stageName'), DB::raw('stage_details.`name` AS stageDetailName'), DB::raw('MAX(stages.`grade`) AS maxGrade'), DB::raw('COUNT(stages.`grade`) AS countGrade'), DB::raw('monster_details.`number` AS number'))
+            ->where('monster_details.monsterId', '=', $monsterId)
+            ->groupBy('stages.name', 'stage_details.name', 'monster_details.number')
+            ->get();
 
         $monsterName = Monster::where('id', '=', $monsterId)->first()->name;
-
         $str = '查詢  「' . $monsterName . '」 的結果為：';
+
         foreach ($datas as $data)
         {
-            $id = $data->stageDetailId;
-            $detail = StageDetail::where('id', '=', $id)->first();
-            $stageName = Stage::where('id', '=', $detail->stageId)->first()->name;
-            if (strlen($str) > 0)
-                $str = $str . PHP_EOL . $stageName . ' ' . $detail->name . ' 數量 ' . $data->number;
-            else
-                $str = $stageName . ' ' . $detail->name . ' 數量 ' . $data->number;
+            $str = $str . PHP_EOL . $data->stageName;
+            if ($data->countGrade == 2)
+            {
+                $str = $str . '（普+困）';
+            }
+            else if ($data->maxGrade == 0)
+            {
+                $str = $str . '（普）';
+            }
+            else if ($data->maxGrade == 1)
+            {
+                $str = $str . '（困）';
+            }
+
+            $str = $str . ' ' . $data->stageDetailName . ' 數量' . $data->number;
         }
+
         return $str;
     }
 
     public function log($type, $userId)
     {
-       // $count = Log::where('type', '=' , $type)->where('userId', '=', $userId)->count();
-       // if ($count == 0)
-       // {
             $log = new Log;
             $log->type = $type;
             $log->userId = $userId;
             $log->save();
-       // }
+    }
+
+    public function test()
+    {
+        return 'Hello Tester!';
     }
 }

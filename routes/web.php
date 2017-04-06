@@ -32,3 +32,5 @@ Route::post('/admin/add/monster/clue', 'AdminController@addMonsterClue');
 Route::post('/user/login', 'UsersController@login');
 
 Route::post('/line/callback', 'LineController@callback');
+
+Route::get('/test', 'LineController@test');
