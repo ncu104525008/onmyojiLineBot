@@ -33,4 +33,4 @@ Route::post('/user/login', 'UsersController@login');
 
 Route::post('/line/callback', 'LineController@callback');
 
-Route::get('/test', 'LineController@test');
+Route::post('/test', 'LineController@test');
