@@ -69,16 +69,29 @@ class LineController extends Controller
         if ($order[0] == '懸賞')
         {
             $id = $this->getMonsterId($order[1]);
-            if ($id == -1)
+            if (count($id) == 0)
             {
                 return '查無名稱或線索為'  . $order[1] . '的式神';
+            }
+            else if (count($id) != 1)
+            {
+                $str = '共有' . count($id) . '筆資料' . PHP_EOL . PHP_EOL;
+                foreach ($id as $item) {
+                    if (isset($order[2]) && ($order[2] == '全部' || $order[2] == '全' || $order[2] == '詳細' || $order[2] == '詳'))
+                        $str = $str . $this->getMonsterAllPlace($item) . PHP_EOL . PHP_EOL;
+                    else
+                        $str = $str . $this->getMonsterPlace($item) . PHP_EOL . PHP_EOL;
+
+                }
+
+                return $str;
             }
             else
             {
                 if (isset($order[2]) && ($order[2] == '全部' || $order[2] == '全' || $order[2] == '詳細' || $order[2] == '詳'))
-                    return $this->getMonsterAllPlace($id);
+                    return $this->getMonsterAllPlace($id[0]);
                 else
-                    return $this->getMonsterPlace($id);
+                    return $this->getMonsterPlace($id[0]);
             }
         }
 
@@ -107,36 +120,42 @@ class LineController extends Controller
                                 switch ($count)
                                 {
                                     case 0:
-                                        return -1;
+                                        return array();
                                         break;
                                     case 1:
                                         $id = MonsterClue::where('clue', 'LIKE', '%' . $name . '%')->first()->monsterId;
-                                        return $id;
+                                        return array($id);
                                         break;
                                     default :
-                                        return -1;
+                                        return array();
                                         break;
                                 }
                                 break;
                             case 1:
                                 $id = Monster::where('name', 'LIKE', '%' . $name . '%')->first()->id;
-                                return $id;
+                                return array($id);
                                 break;
                             default :
-                                return -1;
+                                $monsters = Monster::where('name', 'LIKE', '%' . $name . '%')->get();
+                                $list = array();
+                                foreach ($monsters as $monster)
+                                {
+                                    array_push($list, $monster->id);
+                                }
+                                return $list;
                                 break;
                         }
                         break;
                     case 1:
                         $id = MonsterClue::where('clue', '=', $name)->first()->monsterId;
-                        return $id;
+                        return array($id);
                         break;
                 }
                 break;
             case 1:
                 // 完全符合條件的結果
                 $id = Monster::where('name', '=', $name)->first()->id;
-                return $id;
+                return array($id);
                 break;
         }
     }
@@ -150,6 +169,7 @@ class LineController extends Controller
             ->select(DB::raw('stages.`name` AS stageName'), DB::raw('stage_details.`name` AS stageDetailName'), DB::raw('MAX(stages.`grade`) AS maxGrade'), DB::raw('COUNT(stages.`grade`) AS countGrade'), DB::raw('monster_details.`number` AS number'))
             ->where('monster_details.monsterId', '=', $monsterId)
             ->where('number', '=', $max_number)
+	    ->where('number', '!=', '0')
             ->groupBy('stages.name', 'stage_details.name', 'monster_details.number')
             ->orderBy('stages.id')
             ->get();
@@ -186,6 +206,7 @@ class LineController extends Controller
             ->join('stages', 'stage_details.stageId', '=', 'stages.id')
             ->select(DB::raw('stages.`name` AS stageName'), DB::raw('stage_details.`name` AS stageDetailName'), DB::raw('MAX(stages.`grade`) AS maxGrade'), DB::raw('COUNT(stages.`grade`) AS countGrade'), DB::raw('monster_details.`number` AS number'))
             ->where('monster_details.monsterId', '=', $monsterId)
+	    ->where('number', '!=', '0')
             ->groupBy('stages.name', 'stage_details.name', 'monster_details.number')
             ->orderBy('stages.id')
             ->get();
