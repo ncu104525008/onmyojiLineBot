@@ -16,7 +16,7 @@ class CreateStagesTable extends Migration
         Schema::create('stages', function (Blueprint $table) {
             $table->increments('id');
 	        $table->string('name');
-            $table->integer('grade')->default('-1');
+            $table->boolean('open')->default(true);
         });
     }
 

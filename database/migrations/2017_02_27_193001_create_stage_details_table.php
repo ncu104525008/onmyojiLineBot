@@ -17,6 +17,9 @@ class CreateStageDetailsTable extends Migration
             $table->increments('id');
             $table->integer('stageId');
             $table->string('name');
+            $table->integer('grade')->default('0');
+            $table->integer('monsterId');
+            $table->integer('number');
         });
     }
 

@@ -11,7 +11,6 @@ use DB;
 use App\Stage;
 use App\StageDetail;
 use App\Monster;
-use App\MonsterDetail;
 use App\MonsterClue;
 use App\Log;
 
@@ -48,14 +47,26 @@ class AdminController extends Controller
                 $stages[$item->id] = $item->name;
             }
 
+            $monster_list = Monster::all();
+            $monsters = array();
+            foreach ($monster_list as $item)
+            {
+                $monsters[$item->id] = $item->name;
+            }
+
+            $grades = array('0' => '普通', '-1' => '無', '1' => '困難');
+
             $details = StageDetail::all();
             foreach ($details as $detail)
             {
                 $stageName = Stage::where('id', $detail->stageId)->first()->name;
+                $monsterName = Monster::where('id', $detail->monsterId)->first()->name;
                 $detail->stageName = $stageName;
+                $detail->monsterName = $monsterName;
+                $detail->grade = $grades[$detail->grade];
             }
 
-            return view('admin.stage_detail', compact('stages', 'details'));
+            return view('admin.stage_detail', compact('stages', 'details', 'grades', 'monsters'));
         }
         else
         {
@@ -70,39 +81,6 @@ class AdminController extends Controller
             $monsters = Monster::all();
 
             return view('admin.monster', compact('monsters'));
-        }
-        else
-        {
-            return view('admin.main');
-        }
-    }
-
-    public function monsterDetail()
-    {
-        if (Session::has('id'))
-        {
-            $stage_detail_list = StageDetail::all();
-            $stage_details = array();
-            foreach ($stage_detail_list as $item)
-            {
-                $name = Stage::where('id', $item->stageId)->first()->name;
-                $stage_details[$item->id] = $name . '-' . $item->name;
-            }
-
-            $monster_list = Monster::all();
-            $monsters = array();
-            foreach ($monster_list as $item)
-            {
-                $monsters[$item->id] = $item->name;
-            }
-
-            $monster_detail_list = MonsterDetail::all();
-            foreach ($monster_detail_list as $item) {
-                $item->stageDetail = $stage_details[$item->stageDetailId];
-                $item->monster = $monsters[$item->monsterId];
-            }
-
-            return view('admin.monster_detail', compact('stage_details', 'monsters', 'monster_detail_list'));
         }
         else
         {
@@ -155,11 +133,17 @@ class AdminController extends Controller
         {
             $stageId = Input::get('stageId');
             $name = Input::get('name');
+            $grade = Input::get('grade');
+            $monsterId = Input::get('monsterId');
+            $number = Input::get('number');
 
             if (strlen($name) > 0) {
                 $detail = new StageDetail;
                 $detail->stageId = $stageId;
                 $detail->name = $name;
+                $detail->grade = $grade;
+                $detail->monsterId = $monsterId;
+                $detail->number = $number;
                 $detail->save();
             }
         }
@@ -175,24 +159,6 @@ class AdminController extends Controller
                 $monster = new Monster;
                 $monster->name = $name;
                 $monster->save();
-            }
-        }
-    }
-
-    public function addMonsterDetail()
-    {
-        if (Session::has('id'))
-        {
-            $stageDetailId = Input::get('stageDetailId');
-            $monsterId = Input::get("monsterId");
-            $number = Input::get('number');
-
-            if ($number > 0) {
-                $detail = new MonsterDetail;
-                $detail->stageDetailId = $stageDetailId;
-                $detail->monsterId = $monsterId;
-                $detail->number = $number;
-                $detail->save();
             }
         }
     }

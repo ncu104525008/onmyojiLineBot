@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\DB;
 use App\Stage;
 use App\StageDetail;
 use App\Monster;
-use App\MonsterDetail;
 use App\MonsterClue;
 use App\Log;
 
@@ -162,18 +161,21 @@ class LineController extends Controller
 
     public function getMonsterPlace($monsterId)
     {
-        $max_number = MonsterDetail::where('monsterId', '=', $monsterId)->orderBy('number', 'desc')->first()->number;
-        $datas = DB::table('monster_details')
-            ->join('stage_details', 'monster_details.stageDetailId', '=', 'stage_details.id')
+        // 取得該式神最大數量
+        $max_number = StageDetail::where('monsterId', '=', $monsterId)->max('number');
+
+        // 取得所有符合最大數量的關卡
+        $datas = DB::table('stage_details')
             ->join('stages', 'stage_details.stageId', '=', 'stages.id')
-            ->select(DB::raw('stages.`name` AS stageName'), DB::raw('stage_details.`name` AS stageDetailName'), DB::raw('MAX(stages.`grade`) AS maxGrade'), DB::raw('COUNT(stages.`grade`) AS countGrade'), DB::raw('monster_details.`number` AS number'))
-            ->where('monster_details.monsterId', '=', $monsterId)
+            ->select(DB::raw('stages.`name` AS stageName'), DB::raw('stage_details.`name` AS stageDetailName'), DB::raw('MAX(stage_details.`grade`) AS maxGrade'), DB::raw('COUNT(stage_details.`grade`) AS countGrade'), DB::raw('stage_details.`number` AS number'))
+            ->where('stages.open', '=', '1')
+            ->where('stage_details.monsterId', '=', $monsterId)
             ->where('number', '=', $max_number)
-	    ->where('number', '!=', '0')
-            ->groupBy('stages.name', 'stage_details.name', 'monster_details.number')
+            ->groupBy('stages.name', 'stage_details.name', 'stage_details.number')
             ->orderBy('stages.id')
             ->get();
 
+        // 查詢式神名稱
         $monsterName = Monster::where('id', '=', $monsterId)->first()->name;
         $str = '查詢  「' . $monsterName . '」 的結果為：';
 
@@ -201,13 +203,12 @@ class LineController extends Controller
 
     public function getMonsterAllPlace($monsterId)
     {
-        $datas = DB::table('monster_details')
-            ->join('stage_details', 'monster_details.stageDetailId', '=', 'stage_details.id')
+        $datas = DB::table('stage_details')
             ->join('stages', 'stage_details.stageId', '=', 'stages.id')
-            ->select(DB::raw('stages.`name` AS stageName'), DB::raw('stage_details.`name` AS stageDetailName'), DB::raw('MAX(stages.`grade`) AS maxGrade'), DB::raw('COUNT(stages.`grade`) AS countGrade'), DB::raw('monster_details.`number` AS number'))
-            ->where('monster_details.monsterId', '=', $monsterId)
-	    ->where('number', '!=', '0')
-            ->groupBy('stages.name', 'stage_details.name', 'monster_details.number')
+            ->select(DB::raw('stages.`name` AS stageName'), DB::raw('stage_details.`name` AS stageDetailName'), DB::raw('MAX(stage_details.`grade`) AS maxGrade'), DB::raw('COUNT(stage_details.`grade`) AS countGrade'), DB::raw('stage_details.`number` AS number'))
+            ->where('stages.open', '=', '1')
+            ->where('stage_details.monsterId', '=', $monsterId)
+            ->groupBy('stages.name', 'stage_details.name', 'stage_details.number')
             ->orderBy('stages.id')
             ->get();
 
@@ -246,60 +247,6 @@ class LineController extends Controller
 
     public function test()
     {
-
-        $channel_access_token = 'aDAamp2Wbzrxk9mCVDTwPETjHilixPqhrBSnrrcLM5gGCy0aG3PvR6OH5K6SkMMcwOEndSy9jnhUsRv8iY/grgm+ZbPCFFTb0epHt5zQam+hwssdzuO8RSH0/51ljjb68cGDrkilW+5aaV0rxrM+TQdB04t89/1O/w1cDnyilFU=';
-
-        // 將收到的資料整理至變數
-        $receive = json_decode(file_get_contents("php://input"));
-
-        // 讀取收到的訊息內容
-        $text = $receive->events[0]->message->text;
-
-        // 讀取訊息來源的類型 	[user, group, room]
-        $type = $receive->events[0]->source->type;
-
-        // 由於新版的Messaging Api可以讓Bot帳號加入多人聊天和群組當中
-        // 所以在這裡先判斷訊息的來源
-        if ($type == "room")
-        {
-            // 多人聊天 讀取房間id
-            $from = $receive->events[0]->source->roomId;
-        }
-        else if ($type == "group")
-        {
-            // 群組 讀取群組id
-            $from = $receive->events[0]->source->groupId;
-        }
-        else
-        {
-            // 一對一聊天 讀取使用者id
-            $from = $receive->events[0]->source->userId;
-        }
-
-        $order = explode(' ', $text);
-        if ($order[0] == '懸賞')
-        {
-            $text = '妖刀姐姐換帳號囉~現在可以加新的妖刀姐姐當好友了！' . PHP_EOL
-                . '之後就以新帳號為主，這邊的4/15就會關閉囉！' . PHP_EOL
-                . '附上新的妖刀姐姐的QR CODE給大家掃描～';
-
-            // 準備Post回Line伺服器的資料
-            $header = ["Content-Type: application/json", "Authorization: Bearer {" . $channel_access_token . "}"];
-
-            $url = "https://api.line.me/v2/bot/message/push";
-            $data = ["to" => $from, "messages" => array(["type" => "text", "text" => $text])];
-            $context = stream_context_create(array(
-                "http" => array("method" => "POST", "header" => implode(PHP_EOL, $header), "content" => json_encode($data), "ignore_errors" => true)
-            ));
-            file_get_contents($url, false, $context);
-
-            $data = ["to" => $from, "messages" => array(["type" => "image", "originalContentUrl" => 'https://i.imgur.com/f5o6MC7.jpg', "previewImageUrl" => 'https://i.imgur.com/6fBtnON.jpg'])];
-            $context = stream_context_create(array(
-                "http" => array("method" => "POST", "header" => implode(PHP_EOL, $header), "content" => json_encode($data), "ignore_errors" => true)
-            ));
-            file_get_contents($url, false, $context);
-        }
-
-        return '';
+        return 'Test Page';
     }
 }

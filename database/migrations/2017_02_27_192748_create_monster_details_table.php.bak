@@ -16,8 +16,8 @@ class CreateMonsterDetailsTable extends Migration
         Schema::create('monster_details', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('stageDetailId');
-	    $table->integer('monsterId');
-	    $table->integer('number');
+	        $table->integer('monsterId');
+	        $table->integer('number');
         });
     }
 

@@ -17,7 +17,7 @@ class CreateLogsTable extends Migration
             $table->increments('id');
             $table->string('type');
             $table->string('userId');
-	    $table->timestamp('created_at')->nullable();
+	        $table->timestamp('created_at')->nullable();
         });
     }
 
