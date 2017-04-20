@@ -185,7 +185,7 @@ class AdminController extends Controller
         if (Session::has('id'))
         {
             $logs = DB::table('logs')->select(DB::raw('userId, count(`userId`) as count'))->groupBy('userId')->get();
-            $all_count = Log::all()->count();
+            $all_count = DB::table('logs')->select(DB::raw('count(*) AS count'))->first()->count;
 
             return view('admin.log', compact('logs', 'all_count'));
         }
